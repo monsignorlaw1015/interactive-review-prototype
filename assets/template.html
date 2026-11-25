@@ -8,11 +8,17 @@
 <style>/* 本需求样式。勿在此改写通用导航。 */</style></head>
 <body class="review-shell"><header class="review-header"><strong>需求名称</strong><nav class="review-tabs" aria-label="评审板块"><button data-review-tab="requirements">01 需求概述</button><button data-review-tab="static">02 页面原型</button><button data-review-tab="demo">03 交互演示</button></nav></header>
 <div class="review-layout"><aside class="review-nav">
-<nav data-review-nav="requirements"><a href="#requirements" data-review-link="requirements">功能结构</a><!-- 每个独立主题注册为单独data-review-panel页，运行时按页面生成目录 --></nav>
+<nav data-review-nav="requirements"><a href="#requirements-description" data-review-link="requirements-description">需求说明</a><a href="#requirements" data-review-link="requirements">功能结构</a><!-- 每个独立主题注册为单独data-review-panel页，运行时按页面生成目录 --></nav>
 <nav data-review-nav="static" hidden><a href="#static-boards" data-review-link="static-boards">页面与关键状态</a></nav>
 <nav data-review-nav="demo" hidden><a href="#section-entry" data-review-link="section-entry">页面入口</a><!-- 仅保留必要页面/角色入口 --></nav></aside>
 <main class="review-content"><h1 class="review-heading" data-review-heading></h1>
-<section id="requirements" data-review-panel="requirements" data-review-title="功能结构"><!-- 需求目标、功能结构、业务规则与待确认项；图示可独立section注册 --></section>
+<section id="requirements-description" data-review-panel="requirements" data-review-title="需求说明">
+  <div class="review-diagram-card review-requirements-card">
+    <section><h2>需求背景</h2><!-- 根据 PRD 填写现状与目标 --></section>
+    <section><h2>功能说明</h2><!-- 根据 PRD 填写操作、响应和关键规则 --></section>
+  </div>
+</section>
+<section id="requirements" data-review-panel="requirements" data-review-title="功能结构"><!-- 功能结构图 --></section>
 <section id="static-boards" data-review-panel="static" data-review-title="页面原型"><!-- 按场景展开静态画板、标注与操作连线；使用review-board-group/scroll/row --></section>
 <section id="section-entry" data-review-panel="demo" data-review-title="页面入口"><div class="review-page-row"><div class="review-product-stage"><!-- 根据PRD填写.prototype-viewport和data-device，包含真实业务UI --></div><aside class="prd-panel"><!-- 功能说明／逻辑说明／交互说明／备注 --></aside></div></section>
 </main></div>

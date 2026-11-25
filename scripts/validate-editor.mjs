@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { findBrowser } from './browser.mjs';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -176,8 +176,10 @@ try {
       document.querySelector('.proto-editor-launcher').click();
       document.querySelector('.proto-editor-toolbar [data-action="export"]').click();
       if (!captured) return { error: '未生成导出文件' };
-      const doc = new DOMParser().parseFromString(await captured.text(), 'text/html');
+      const html = await captured.text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
       return {
+        html,
         missing: plan.filter(item => doc.querySelector('#' + CSS.escape(item.section) + ' [data-proto-edit="' + CSS.escape(item.key) + '"]')?.textContent !== item.marker).map(item => item.section + '/' + item.type),
         tools: doc.querySelectorAll('[data-proto-editor-ui], [data-proto-editor-runtime], .proto-editor-launcher, .proto-editor-toolbar').length,
         editAttributes: doc.querySelectorAll('[contenteditable], [spellcheck]').length,
@@ -194,11 +196,35 @@ try {
   if (exported.editAttributes || exported.active) failures.push('导出文件残留编辑态属性');
   if (failures.length) throw new Error(failures.join('；'));
 
+  const exportPath = join(profileDir, 'review-export.html');
+  writeFileSync(exportPath, exported.html, 'utf8');
+  const exportUrl = pathToFileURL(realpathSync(exportPath)).href;
+  await send('Page.addScriptToEvaluateOnNewDocument', {
+    source: `window.__reviewExportErrors = [];
+      window.addEventListener('error', event => {
+        if (event.message) window.__reviewExportErrors.push(event.message);
+      });
+      window.addEventListener('unhandledrejection', event => {
+        window.__reviewExportErrors.push(String(event.reason));
+      });`
+  });
+  const navigation = await send('Page.navigate', { url: exportUrl });
+  if (navigation.errorText) throw new Error('导出文件重开失败：' + navigation.errorText);
+  let reopened = false;
+  for (let attempt = 0; attempt < 40; attempt++) {
+    reopened = await evaluate(`location.href.split('#', 1)[0] === ${JSON.stringify(exportUrl)} && document.readyState === 'complete'`);
+    if (reopened) break;
+    await wait(125);
+  }
+  if (!reopened) throw new Error('导出文件重开超时：' + await evaluate('location.href + " / " + document.readyState'));
+  const exportErrors = await evaluate('window.__reviewExportErrors');
+  if (exportErrors.length) throw new Error('导出文件重开时脚本报错：' + exportErrors.join('；'));
+
   const totalBindings = audit.sections.reduce((sum, section) => sum + section.productBindings + section.prdBindings, 0);
   console.log(`✓ 文案编辑验收通过：${audit.sections.length} 个页面，${totalBindings} 个绑定`);
   audit.sections.forEach(section => console.log(`  ${section.id} [${section.device}]: 产品 ${section.productBindings}，功能说明 ${section.prdBindings}`));
   const overlaysTested = editPlan.filter(item => !['normal', 'prd'].includes(item.type));
-  console.log(`  交互回归：逐页普通页与功能说明、${overlaysTested.length} 个叠加态，共 ${editPlan.length} 处；导出评审版通过`);
+  console.log(`  交互回归：逐页普通页与功能说明、${overlaysTested.length} 个叠加态，共 ${editPlan.length} 处；导出文件文案检查和浏览器重开通过`);
 } catch (error) {
   console.error(`✗ 文案编辑验收失败：${error.message}`);
   process.exitCode = 1;
