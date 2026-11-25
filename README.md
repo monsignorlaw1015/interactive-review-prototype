@@ -6,9 +6,9 @@
 
 以下截图来自仓库内可运行的[任务筛选示例](examples/task-filter.html)，全部使用虚构数据。下载 HTML 后用浏览器打开，可切换板块、筛选任务、查看详情、编辑文案和导出评审版；对应[示例 PRD](examples/PRD.md)一并提供。
 
-### 需求概述：功能结构与变更范围
+### 需求概述：需求说明、功能结构与业务流程
 
-![需求概述：功能结构、变更标签与流程](docs/images/01-requirements.png)
+![需求概述：需求说明与完整目录](docs/images/01-requirements.png)
 
 ### 页面原型：固定画板与操作连线
 
