@@ -13,14 +13,14 @@
   let editing = false;
   let dirty = false;
 
-  const autoScopeSelector = '.prototype-viewport, .macos-window, .mobile-frame, .prd-panel';
+  const autoScopeSelector = '.prototype-viewport, .macos-window, .mobile-frame, .prd-panel, .rc-static-ui, [data-review-panel="requirements"]';
   const autoExcludeSelector = [
     '.proto-nav', '.toc-sidebar', '.section-label', '.flow-overview',
     '[data-proto-editor-ui]', 'script', 'style', 'svg', 'path', 'defs'
   ].join(',');
 
   const stablePath = el => {
-    const section = el.closest('[id^="section-"]');
+    const section = el.closest('[data-review-panel][id], [id^="section-"]');
     const parts = [];
     let node = el;
     while (node && node !== section) {

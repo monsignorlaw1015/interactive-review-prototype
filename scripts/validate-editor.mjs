@@ -91,6 +91,7 @@ try {
       productBindings: section.querySelectorAll('.prototype-viewport [data-proto-edit], .macos-window [data-proto-edit], .mobile-frame [data-proto-edit]').length,
       prdBindings: section.querySelectorAll('.prd-panel [data-proto-edit]').length
     })),
+    reviewAreas: [...document.querySelectorAll('[data-review-panel="requirements"], .rc-static-ui')].filter(el => [...el.querySelectorAll('*')].some(node => !node.closest('svg') && [...node.childNodes].some(child => child.nodeType === 3 && child.textContent.trim()))).map((el, index) => ({ name: (el.closest('[data-review-panel]')?.id || 'static') + ':' + index, bindings: el.querySelectorAll('[data-proto-edit]:not([data-proto-edit-attr])').length })),
     excluded: { toc: document.querySelectorAll('.toc-sidebar [data-proto-edit-auto]').length, flow: document.querySelectorAll('.flow-overview [data-proto-edit-auto]').length },
     mobileFrames: [...document.querySelectorAll('.mobile-frame')].map(frame => ({
       width: Math.round(frame.getBoundingClientRect().width),
@@ -99,6 +100,7 @@ try {
     }))
   }))()`);
   const failures = [];
+  audit.reviewAreas.filter(area => !area.bindings).forEach(area => failures.push(area.name + ' 缺少可编辑文案'));
   if (!audit.launcher) failures.push('缺少【编辑文案】入口');
   audit.sections.filter(section => section.productBindings === 0).forEach(section => failures.push(`${section.id} 产品界面无可编辑文案`));
   audit.sections.filter(section => section.prdBindings === 0).forEach(section => failures.push(`${section.id} 功能说明无可编辑文案`));
@@ -141,6 +143,10 @@ try {
       for (const [type, overlay] of Object.entries(overlays)) {
         add(section, type, firstText(overlay, '[data-proto-edit]'));
       }
+    }
+    for (const root of document.querySelectorAll('[data-review-panel="requirements"], .rc-static-ui')) {
+      const section = root.closest('[data-review-panel][id]');
+      if (section) add(section, 'review-area', firstText(root, '[data-proto-edit]:not([data-proto-edit-attr])'));
     }
     return plan;
   };
